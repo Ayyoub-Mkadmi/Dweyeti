@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart'; // Import the flutter_svg package
 import 'package:flutter/services.dart'; // For rootBundle
-// import 'package:intl/intl.dart';
 
 class SyringePage extends StatefulWidget {
   @override
@@ -11,8 +10,12 @@ class SyringePage extends StatefulWidget {
 class _SyringePageState extends State<SyringePage> {
   TextEditingController _medicineNameController = TextEditingController();
   List<TimeOfDay> _doseTimes = [];
-  String _reminderFrequency = "كل نهار";
   Color _selectedColor = Colors.red; // Default chosen color
+
+  // State variables for the calendar feature
+  DateTime? _startDate;
+  DateTime? _endDate;
+  Duration? _duration;
 
   @override
   void initState() {
@@ -53,6 +56,61 @@ class _SyringePageState extends State<SyringePage> {
     });
   }
 
+  // Function to show the calendar and select a start date
+  Future<void> _selectStartDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        _startDate = picked;
+        _endDate = null; // Reset end date when start date changes
+        _duration = null; // Reset duration when start date changes
+      });
+    }
+  }
+
+  // Function to show the calendar and select an end date
+  Future<void> _selectEndDate() async {
+    if (_startDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please select a start date first.")),
+      );
+      return;
+    }
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _startDate!,
+      firstDate: _startDate!,
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        _endDate = picked;
+        _duration = _endDate!.difference(_startDate!);
+      });
+    }
+  }
+
+  // Function to set the period and calculate the end date
+  void _setPeriod(int days) {
+    if (_startDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please select a start date first.")),
+      );
+      return;
+    }
+
+    setState(() {
+      _duration = Duration(days: days);
+      _endDate = _startDate!.add(_duration!);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,17 +144,35 @@ class _SyringePageState extends State<SyringePage> {
                           top: 10,
                           left: 10,
                         ), // Move down and to the right
-                        child: SvgPicture.asset(
-                          'assets/icons/syringe.svg', // Path to your SVG file
-                          width: 80, // Increased size
-                          height: 80,
-                          color: _selectedColor, // Apply selected color
-                          placeholderBuilder:
-                              (BuildContext context) => Icon(
-                                Icons.medical_services, // Fallback icon
-                                size: 80,
-                                color: _selectedColor,
-                              ),
+                        child: Stack(
+                          alignment: Alignment.center, // Center the images
+                          children: [
+                            // Existing syringe image
+                            SvgPicture.asset(
+                              'assets/icons/syringe.svg', // Path to your SVG file
+                              width: 80, // Increased size
+                              height: 80,
+                              color: _selectedColor, // Apply selected color
+                              placeholderBuilder:
+                                  (BuildContext context) => Icon(
+                                    Icons.medical_services, // Fallback icon
+                                    size: 80,
+                                    color: _selectedColor,
+                                  ),
+                            ),
+                            // New syringe image on top
+                            SvgPicture.asset(
+                              'assets/icons/syringe1sup.svg', // Path to the new SVG file
+                              width: 80, // Same size as the existing one
+                              height: 80,
+                              placeholderBuilder:
+                                  (BuildContext context) => Icon(
+                                    Icons.medical_services, // Fallback icon
+                                    size: 80,
+                                    color: Colors.white.withOpacity(0.5),
+                                  ),
+                            ),
+                          ],
                         ),
                       ),
                       SizedBox(width: 16), // Space between syringe and text
@@ -286,33 +362,104 @@ class _SyringePageState extends State<SyringePage> {
                         ),
                       ),
                       SizedBox(height: 10),
-                      DropdownButtonFormField<String>(
-                        value: _reminderFrequency,
-                        onChanged: (value) {
-                          setState(() {
-                            _reminderFrequency = value!;
-                          });
-                        },
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
+                      // Start Date Button
+                      ElevatedButton(
+                        onPressed: _selectStartDate,
+                        child: Text(
+                          _startDate == null
+                              ? "اختر تاريخ البدء"
+                              : "تاريخ البدء: ${_startDate!.toLocal().toString().split(' ')[0]}",
+                          style: TextStyle(fontSize: 18, color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue[700],
+                          shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        items:
-                            ["كل نهار", "كل يومين", "كل 3 أيام"]
-                                .map(
-                                  (e) => DropdownMenuItem(
-                                    value: e,
-                                    child: Text(
-                                      e,
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                      ), // Increased font size
-                                    ),
-                                  ),
-                                )
-                                .toList(),
                       ),
+                      SizedBox(height: 10),
+                      // End Date Button
+                      ElevatedButton(
+                        onPressed: _selectEndDate,
+                        child: Text(
+                          _endDate == null
+                              ? "اختر تاريخ الانتهاء"
+                              : "تاريخ الانتهاء: ${_endDate!.toLocal().toString().split(' ')[0]}",
+                          style: TextStyle(fontSize: 18, color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue[700],
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      // Period Buttons
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () => _setPeriod(7),
+                            child: Text(
+                              "أسبوع",
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue[700],
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => _setPeriod(14),
+                            child: Text(
+                              "أسبوعين",
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue[700],
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => _setPeriod(30),
+                            child: Text(
+                              "شهر",
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue[700],
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 10),
+                      // Display Duration
+                      if (_duration != null)
+                        Text(
+                          "المدة: ${_duration!.inDays} يوم",
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.blue[700],
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -402,18 +549,18 @@ class WavePainter extends CustomPainter {
           ..style = PaintingStyle.fill;
 
     final path = Path();
-    path.moveTo(0, size.height * 0.7); // Start point
+    path.moveTo(0, size.height * 0.9); // Start point
     path.quadraticBezierTo(
       size.width * 0.25,
-      size.height * 0.4, // Control point 1
+      size.height * 0.7, // Control point 1
       size.width * 0.5,
-      size.height * 0.7, // End point 1
+      size.height * 1, // End point 1
     );
     path.quadraticBezierTo(
       size.width * 0.75,
-      size.height * 1.0, // Control point 2
-      size.width,
-      size.height * 0.7, // End point 2
+      size.height * 1.2, // Control point 2
+      size.width * 1,
+      size.height * 0.9, // End point 2
     );
     path.lineTo(size.width, 0);
     path.lineTo(0, 0);
