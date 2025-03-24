@@ -363,9 +363,10 @@ class _SyringePageState extends State<SyringePage> {
                       ),
                       SizedBox(height: 10),
                       // Start Date Button
-                      ElevatedButton(
+                      ElevatedButton.icon(
                         onPressed: _selectStartDate,
-                        child: Text(
+                        icon: Icon(Icons.calendar_today, color: Colors.white),
+                        label: Text(
                           _startDate == null
                               ? "اختر تاريخ البدء"
                               : "تاريخ البدء: ${_startDate!.toLocal().toString().split(' ')[0]}",
@@ -376,13 +377,18 @@ class _SyringePageState extends State<SyringePage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
                         ),
                       ),
                       SizedBox(height: 10),
                       // End Date Button
-                      ElevatedButton(
+                      ElevatedButton.icon(
                         onPressed: _selectEndDate,
-                        child: Text(
+                        icon: Icon(Icons.calendar_today, color: Colors.white),
+                        label: Text(
                           _endDate == null
                               ? "اختر تاريخ الانتهاء"
                               : "تاريخ الانتهاء: ${_endDate!.toLocal().toString().split(' ')[0]}",
@@ -393,6 +399,10 @@ class _SyringePageState extends State<SyringePage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
                         ),
                       ),
                       SizedBox(height: 10),
@@ -400,9 +410,10 @@ class _SyringePageState extends State<SyringePage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          ElevatedButton(
+                          ElevatedButton.icon(
                             onPressed: () => _setPeriod(7),
-                            child: Text(
+                            icon: Icon(Icons.date_range, color: Colors.white),
+                            label: Text(
                               "أسبوع",
                               style: TextStyle(
                                 fontSize: 18,
@@ -414,11 +425,16 @@ class _SyringePageState extends State<SyringePage> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 10,
+                              ),
                             ),
                           ),
-                          ElevatedButton(
+                          ElevatedButton.icon(
                             onPressed: () => _setPeriod(14),
-                            child: Text(
+                            icon: Icon(Icons.date_range, color: Colors.white),
+                            label: Text(
                               "أسبوعين",
                               style: TextStyle(
                                 fontSize: 18,
@@ -430,11 +446,16 @@ class _SyringePageState extends State<SyringePage> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 10,
+                              ),
                             ),
                           ),
-                          ElevatedButton(
+                          ElevatedButton.icon(
                             onPressed: () => _setPeriod(30),
-                            child: Text(
+                            icon: Icon(Icons.date_range, color: Colors.white),
+                            label: Text(
                               "شهر",
                               style: TextStyle(
                                 fontSize: 18,
@@ -445,6 +466,10 @@ class _SyringePageState extends State<SyringePage> {
                               backgroundColor: Colors.blue[700],
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 10,
                               ),
                             ),
                           ),
