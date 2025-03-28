@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
+import 'package:test/pages/pill_page.dart';
+import 'package:test/pages/sachet_page.dart';
 
 void main() {
   runApp(MyApp());
@@ -12,7 +14,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Syringe App',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: SyringePage(),
+      //home: SyringePage(),
+      //home: SachetPage(),
+      //home: PillPage(),
     );
   }
 }
