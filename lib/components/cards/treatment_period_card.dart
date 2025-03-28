@@ -33,10 +33,10 @@ class TreatmentPeriodCard extends StatelessWidget {
               Container(
                 alignment: Alignment.centerRight,
                 child: const Text(
-                  "قداه بش تفقد تشربو ؟",
+                  "قداه بش تقعد تشربو ؟",
                   style: TextStyle(
                     fontSize: 20,
-                    color: Colors.blue,
+                    color: Color.fromARGB(255, 76, 201, 240),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -47,7 +47,10 @@ class TreatmentPeriodCard extends StatelessWidget {
                 children: [
                   IconButton(
                     onPressed: onSelectStartDate,
-                    icon: const Icon(Icons.calendar_today, color: Colors.blue),
+                    icon: const Icon(
+                      Icons.calendar_today,
+                      color: Color.fromARGB(255, 76, 201, 240),
+                    ),
                   ),
                   Text(
                     startDate == null
@@ -63,7 +66,10 @@ class TreatmentPeriodCard extends StatelessWidget {
                 children: [
                   IconButton(
                     onPressed: onSelectEndDate,
-                    icon: const Icon(Icons.calendar_today, color: Colors.blue),
+                    icon: const Icon(
+                      Icons.calendar_today,
+                      color: Color.fromARGB(255, 76, 201, 240),
+                    ),
                   ),
                   Text(
                     endDate == null
@@ -98,7 +104,10 @@ class TreatmentPeriodCard extends StatelessWidget {
                 const SizedBox(height: 10),
                 Text(
                   "المدة: ${duration!.inDays} يوم",
-                  style: const TextStyle(fontSize: 18, color: Colors.blue),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Color.fromARGB(255, 76, 201, 240),
+                  ),
                   textAlign: TextAlign.right,
                 ),
               ],

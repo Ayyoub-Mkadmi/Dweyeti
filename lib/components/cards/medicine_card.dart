@@ -2,13 +2,10 @@ import 'package:flutter/material.dart';
 
 class MedicineCard extends StatelessWidget {
   final TextEditingController controller;
-  final ValueChanged<String> onChanged;
+  final ValueChanged<String>? onChanged;
 
-  const MedicineCard({
-    required this.controller,
-    required this.onChanged,
-    Key? key,
-  }) : super(key: key);
+  const MedicineCard({required this.controller, this.onChanged, Key? key})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +24,7 @@ class MedicineCard extends StatelessWidget {
                   ": اسم الدواء",
                   style: TextStyle(
                     fontSize: 20,
-                    color: Colors.blue,
+                    color: Color.fromARGB(255, 76, 201, 240),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -39,10 +36,21 @@ class MedicineCard extends StatelessWidget {
                 decoration: InputDecoration(
                   prefixIcon: const Icon(
                     Icons.medical_services,
-                    color: Colors.blue,
+                    color: Color.fromARGB(255, 76, 201, 240),
                   ),
-                  border: OutlineInputBorder(
+                  enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(
+                      color: Color.fromARGB(255, 76, 201, 240),
+                      width: 2.0,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(
+                      color: Color.fromARGB(255, 76, 201, 240),
+                      width: 2.0,
+                    ),
                   ),
                   hintText: "ادخل اسم الدواء",
                 ),

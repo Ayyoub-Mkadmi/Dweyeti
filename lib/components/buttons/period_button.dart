@@ -18,9 +18,9 @@ class PeriodButton extends StatelessWidget {
       onPressed: onPressed,
       label: Text(label, style: TextStyle(fontSize: 18, color: Colors.white)),
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blue[700],
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        backgroundColor: Color.fromARGB(255, 76, 201, 240),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       ),
     );
   }

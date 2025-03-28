@@ -29,7 +29,7 @@ class DoseTimesCard extends StatelessWidget {
                   "قداه من مرة في النهار ؟",
                   style: TextStyle(
                     fontSize: 20,
-                    color: Colors.blue,
+                    color: Color.fromARGB(255, 76, 201, 240),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -49,7 +49,7 @@ class DoseTimesCard extends StatelessWidget {
                         alignment: Alignment.centerRight,
                         child: Text(
                           time.format(context),
-                          style: const TextStyle(fontSize: 18),
+                          style: const TextStyle(fontSize: 23),
                         ),
                       ),
                     ),
@@ -58,15 +58,28 @@ class DoseTimesCard extends StatelessWidget {
               Center(
                 child: ElevatedButton(
                   onPressed: onAddTime,
-                  child: const Text(
-                    "إضافة وقت",
-                    style: TextStyle(color: Colors.white, fontSize: 18),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 13.0,
+                      vertical: 10.0,
+                    ),
+                    child: Text(
+                      "إضافة وقت",
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Color.fromARGB(255, 76, 201, 240),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(20),
                     ),
+                    minimumSize: Size(
+                      120,
+                      40,
+                    ), // Makes the button wider and taller
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10,
+                    ), // Additional padding
                   ),
                 ),
               ),

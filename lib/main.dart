@@ -16,9 +16,9 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: PillPage(),
+      // home: PillPage(),
       // home: SachetPage(),
-      // home: SyringePage(),
+      home: SyringePage(),
     );
   }
 }

@@ -89,7 +89,7 @@ class _PillHeaderState extends State<PillHeader> {
                       color: Colors.white,
                     ),
                     children: [
-                      const TextSpan(text: "اختر الحرومشة : "),
+                      const TextSpan(text: "اختار الحربوشة  :  "),
                       TextSpan(
                         text: currentPill.name,
                         style: TextStyle(color: currentPill.color),
