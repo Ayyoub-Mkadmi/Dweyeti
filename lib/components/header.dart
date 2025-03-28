@@ -6,10 +6,14 @@ import 'wave_painter.dart';
 class MedicineHeader extends StatelessWidget {
   final Color selectedColor;
   final ValueChanged<Color> onColorSelected;
+  final String syringeSvgPath;
+  final String syringeSupSvgPath;
 
   const MedicineHeader({
     required this.selectedColor,
     required this.onColorSelected,
+    required this.syringeSvgPath,
+    required this.syringeSupSvgPath,
     Key? key,
   }) : super(key: key);
 
@@ -29,7 +33,7 @@ class MedicineHeader extends StatelessWidget {
                   alignment: Alignment.center,
                   children: [
                     SvgPicture.asset(
-                      'assets/icons/syringe.svg',
+                      syringeSvgPath,
                       width: 80,
                       height: 80,
                       color: selectedColor,
@@ -41,7 +45,7 @@ class MedicineHeader extends StatelessWidget {
                           ),
                     ),
                     SvgPicture.asset(
-                      'assets/icons/syringe1sup.svg',
+                      syringeSupSvgPath,
                       width: 80,
                       height: 80,
                       placeholderBuilder:

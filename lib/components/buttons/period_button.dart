@@ -16,11 +16,10 @@ class PeriodButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton.icon(
       onPressed: onPressed,
-      icon: Icon(Icons.date_range, color: Colors.white),
       label: Text(label, style: TextStyle(fontSize: 18, color: Colors.white)),
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.blue[700],
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       ),
     );

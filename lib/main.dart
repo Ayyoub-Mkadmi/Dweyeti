@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:test/pages/pill_page.dart';
+import 'package:test/pages/sachet_page.dart';
 import 'pages/syringe_page.dart';
 
 void main() {
@@ -14,7 +16,9 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: SyringePage(),
+      home: PillPage(),
+      // home: SachetPage(),
+      // home: SyringePage(),
     );
   }
 }

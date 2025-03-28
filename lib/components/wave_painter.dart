@@ -5,7 +5,7 @@ class WavePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint =
         Paint()
-          ..color = Colors.blue[700]!
+          ..color = Color.fromARGB(255, 76, 201, 240)
           ..style = PaintingStyle.fill;
 
     final path =

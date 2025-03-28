@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:test/components/pillHeader.dart';
 import '../components/header.dart';
 import '../components/cards/medicine_card.dart';
 import '../components/cards/dose_times_card.dart';
@@ -7,12 +8,12 @@ import '../components/cards/treatment_period_card.dart';
 import '../components/buttons/action_button.dart';
 // import '../models/medicine.dart';
 
-class SyringePage extends StatefulWidget {
+class PillPage extends StatefulWidget {
   @override
-  _SyringePageState createState() => _SyringePageState();
+  _PillPageState createState() => _PillPageState();
 }
 
-class _SyringePageState extends State<SyringePage> {
+class _PillPageState extends State<PillPage> {
   final TextEditingController _medicineNameController = TextEditingController();
   final List<TimeOfDay> _doseTimes = [];
   Color _selectedColor = Colors.red;
@@ -23,15 +24,6 @@ class _SyringePageState extends State<SyringePage> {
   @override
   void initState() {
     super.initState();
-    _checkSvgFile();
-  }
-
-  Future<void> _checkSvgFile() async {
-    try {
-      await rootBundle.load('assets/icons/syringe.svg');
-    } catch (e) {
-      debugPrint('Failed to load SVG file: $e');
-    }
   }
 
   bool get _isFormComplete {
@@ -118,7 +110,7 @@ class _SyringePageState extends State<SyringePage> {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      // Your syringe SVG implementation here
+                      // Your pill SVG implementation here
                     ],
                   ),
                 ),
@@ -179,18 +171,42 @@ class _SyringePageState extends State<SyringePage> {
 
   @override
   Widget build(BuildContext context) {
+    final pills = [
+      PillItem(
+        name: "تتشتش", // "Capsule" in Arabic as shown in your image
+        imagePath: "assets/icons/tachtech.png", // Replace with your SVG path
+        color: Color.fromARGB(255, 6, 99, 177),
+      ),
+      PillItem(
+        name: "دورة", // "Pills" in Arabic
+        imagePath: "assets/icons/doura.png", // Replace with your SVG path
+        color: Color.fromARGB(255, 231, 23, 20),
+      ),
+      PillItem(
+        name: "كبسولة", // "Pills" in Arabic
+        imagePath: "assets/icons/capsule.png", // Replace with your SVG path
+        color: Color.fromARGB(255, 20, 161, 66),
+      ),
+      PillItem(
+        name: "كبسولة يابسة", // "Pills" in Arabic
+        imagePath:
+            "assets/icons/capsuleYebsa.png", // Replace with your SVG path
+        color: Color.fromARGB(255, 239, 83, 157),
+      ),
+
+      // Add more pill types as needed
+    ];
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            MedicineHeader(
-              selectedColor: _selectedColor,
-              onColorSelected:
-                  (color) => setState(() => _selectedColor = color),
-              syringeSvgPath: 'assets/icons/syringe.svg',
-              syringeSupSvgPath: 'assets/icons/syringe1sup.svg',
+            PillHeader(
+              pills: pills,
+              onPillChanged: (index) {
+                print("Selected pill: ${pills[index].name}");
+              },
             ),
             const SizedBox(height: 30),
             MedicineCard(

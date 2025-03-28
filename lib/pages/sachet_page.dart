@@ -7,12 +7,12 @@ import '../components/cards/treatment_period_card.dart';
 import '../components/buttons/action_button.dart';
 // import '../models/medicine.dart';
 
-class SyringePage extends StatefulWidget {
+class SachetPage extends StatefulWidget {
   @override
-  _SyringePageState createState() => _SyringePageState();
+  _SachetPageState createState() => _SachetPageState();
 }
 
-class _SyringePageState extends State<SyringePage> {
+class _SachetPageState extends State<SachetPage> {
   final TextEditingController _medicineNameController = TextEditingController();
   final List<TimeOfDay> _doseTimes = [];
   Color _selectedColor = Colors.red;
@@ -28,7 +28,7 @@ class _SyringePageState extends State<SyringePage> {
 
   Future<void> _checkSvgFile() async {
     try {
-      await rootBundle.load('assets/icons/syringe.svg');
+      await rootBundle.load('assets/icons/sachet.svg');
     } catch (e) {
       debugPrint('Failed to load SVG file: $e');
     }
@@ -118,7 +118,7 @@ class _SyringePageState extends State<SyringePage> {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      // Your syringe SVG implementation here
+                      // Your sachet SVG implementation here
                     ],
                   ),
                 ),
@@ -189,8 +189,8 @@ class _SyringePageState extends State<SyringePage> {
               selectedColor: _selectedColor,
               onColorSelected:
                   (color) => setState(() => _selectedColor = color),
-              syringeSvgPath: 'assets/icons/syringe.svg',
-              syringeSupSvgPath: 'assets/icons/syringe1sup.svg',
+              syringeSvgPath: 'assets/icons/sachet.svg',
+              syringeSupSvgPath: 'assets/icons/sachet1sup.svg',
             ),
             const SizedBox(height: 30),
             MedicineCard(
