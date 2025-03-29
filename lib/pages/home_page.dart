@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:test/components/bottom_nav_bar.dart';
+// import 'package:test/components/bottom_nav_bar.dart';
 import 'package:test/components/tile/reminder_tile.dart';
 
 import 'package:test/constants/colors.dart';

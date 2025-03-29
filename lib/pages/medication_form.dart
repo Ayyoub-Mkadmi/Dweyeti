@@ -167,6 +167,35 @@ abstract class MedicationFormPageState<T extends MedicationFormPage>
     );
   }
 
+  void _showCancelConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("إلغاء العملية", textAlign: TextAlign.right),
+          content: const Text(
+            "هل أنت متأكد أنك تريد إلغاء العملية؟ سيتم فقدان جميع البيانات المدخلة.",
+            textAlign: TextAlign.right,
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop(); // Navigate back to home page
+              },
+              child: const Text("نعم", style: TextStyle(color: Colors.red)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("لا", style: TextStyle(color: Colors.green)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget buildConfirmationImage();
 
   @override
@@ -212,7 +241,7 @@ abstract class MedicationFormPageState<T extends MedicationFormPage>
                   ActionButton(
                     label: "بطلت",
                     color: Colors.red,
-                    onPressed: () {},
+                    onPressed: _showCancelConfirmationDialog,
                   ),
                 ],
               ),

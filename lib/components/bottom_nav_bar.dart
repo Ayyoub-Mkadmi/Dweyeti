@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:test/components/choose_med.dart';
-import 'package:test/constants/colors.dart';
+// import 'package:test/constants/colors.dart';
 import 'package:test/pages/home_page.dart';
 import 'package:test/pages/medical_page.dart';
 import 'package:test/pages/pill_page.dart';
 import 'package:test/pages/sachet_page.dart';
-import 'package:test/screens/syringe.dart';
+import '../pages/syringe_page.dart';
 
 class BottomNavBar extends StatefulWidget {
   const BottomNavBar({super.key});
