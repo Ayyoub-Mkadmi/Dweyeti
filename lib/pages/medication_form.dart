@@ -3,6 +3,7 @@ import '../components/header.dart';
 import '../components/cards/medicine_card.dart';
 import '../components/cards/dose_times_card.dart';
 import '../components/cards/treatment_period_card.dart';
+import '../components/cards/notes_card.dart';
 import '../components/buttons/action_button.dart';
 
 abstract class MedicationFormPage extends StatefulWidget {
@@ -19,6 +20,7 @@ abstract class MedicationFormPage extends StatefulWidget {
 abstract class MedicationFormPageState<T extends MedicationFormPage>
     extends State<T> {
   final TextEditingController _medicineNameController = TextEditingController();
+  final TextEditingController _notesController = TextEditingController();
   final List<TimeOfDay> _doseTimes = [];
   Color _selectedColor = Colors.red;
   DateTime? _startDate;
@@ -119,6 +121,17 @@ abstract class MedicationFormPageState<T extends MedicationFormPage>
                   textAlign: TextAlign.right,
                 ),
                 const SizedBox(height: 10),
+                if (_notesController.text.isNotEmpty)
+                  Column(
+                    children: [
+                      Text(
+                        "ملاحظات: ${_notesController.text}",
+                        style: const TextStyle(fontSize: 18),
+                        textAlign: TextAlign.right,
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
                 const Text(
                   "مواعيد الجرعات:",
                   style: TextStyle(fontSize: 18),
@@ -202,52 +215,61 @@ abstract class MedicationFormPageState<T extends MedicationFormPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            widget.customHeader,
-            const SizedBox(height: 30),
-            MedicineCard(
-              controller: _medicineNameController,
-              onChanged: (_) => setState(() {}),
-            ),
-            const SizedBox(height: 20),
-            DoseTimesCard(
-              doseTimes: _doseTimes,
-              onAddTime: _addDoseTime,
-              onRemoveTime: _removeDoseTime,
-            ),
-            const SizedBox(height: 20),
-            TreatmentPeriodCard(
-              startDate: _startDate,
-              endDate: _endDate,
-              duration: _duration,
-              onSelectStartDate: _selectStartDate,
-              onSelectEndDate: _selectEndDate,
-              onSetPeriod: _setPeriod,
-            ),
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ActionButton(
-                    label: "سجل",
-                    color: Colors.green,
-                    onPressed: _isFormComplete ? _showConfirmationDialog : null,
-                  ),
-                  ActionButton(
-                    label: "بطلت",
-                    color: Colors.red,
-                    onPressed: _showCancelConfirmationDialog,
-                  ),
-                ],
+      body: Padding(
+        padding: const EdgeInsets.only(bottom: 30.0), // Added bottom margin
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              widget.customHeader,
+              const SizedBox(height: 30),
+              MedicineCard(
+                controller: _medicineNameController,
+                onChanged: (_) => setState(() {}),
               ),
-            ),
-            const SizedBox(height: 20),
-          ],
+              const SizedBox(height: 20),
+              DoseTimesCard(
+                doseTimes: _doseTimes,
+                onAddTime: _addDoseTime,
+                onRemoveTime: _removeDoseTime,
+              ),
+              const SizedBox(height: 20),
+              TreatmentPeriodCard(
+                startDate: _startDate,
+                endDate: _endDate,
+                duration: _duration,
+                onSelectStartDate: _selectStartDate,
+                onSelectEndDate: _selectEndDate,
+                onSetPeriod: _setPeriod,
+              ),
+              const SizedBox(height: 20),
+              NotesCard(
+                controller: _notesController,
+                onChanged: (_) => setState(() {}),
+              ),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ActionButton(
+                      label: "سجل",
+                      color: Colors.green,
+                      onPressed:
+                          _isFormComplete ? _showConfirmationDialog : null,
+                    ),
+                    ActionButton(
+                      label: "بطلت",
+                      color: Colors.red,
+                      onPressed: _showCancelConfirmationDialog,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );
