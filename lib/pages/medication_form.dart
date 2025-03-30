@@ -23,7 +23,7 @@ abstract class MedicationFormPageState<T extends MedicationFormPage>
   final TextEditingController _medicineNameController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
   final List<TimeOfDay> _doseTimes = [];
-  Color _selectedColor = Colors.red;
+  Color _selectedColor = const Color.fromARGB(255, 214, 74, 64);
   DateTime? _startDate;
   DateTime? _endDate;
   Duration? _duration;
