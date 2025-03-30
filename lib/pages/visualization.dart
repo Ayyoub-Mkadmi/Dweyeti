@@ -50,7 +50,7 @@ class HiveViewerPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Treatment Periods (Ords):',
+                    'Treatment Periods:',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   ...medication.ords.map((ord) => _buildOrdCard(ord)).toList(),
@@ -95,6 +95,8 @@ class HiveViewerPage extends StatelessWidget {
   }
 
   Widget _buildOrdCard(Ord ord) {
+    final duration = ord.endDate.difference(ord.startDate).inDays;
+
     return Card(
       margin: const EdgeInsets.only(top: 8.0),
       color: Colors.grey[100],
@@ -104,7 +106,9 @@ class HiveViewerPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildInfoRow('Ord ID:', ord.idOrd),
-            _buildInfoRow('Frequency:', ord.frequency),
+            _buildInfoRow('Start Date:', _formatDate(ord.startDate)),
+            _buildInfoRow('End Date:', _formatDate(ord.endDate)),
+            _buildInfoRow('Duration:', '$duration days'),
             _buildInfoRow('Times:', ord.times.join(', ')),
             _buildInfoRow('Notes:', ord.notes),
             const SizedBox(height: 8),
@@ -125,5 +129,9 @@ class HiveViewerPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 }

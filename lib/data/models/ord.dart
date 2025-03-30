@@ -1,57 +1,28 @@
 import 'package:hive/hive.dart';
 
-part 'ord.g.dart';
+part 'ord.g.dart'; // For Hive code generation
 
-@HiveType(typeId: 1) // Note: typeId must be unique across all models
-class Ord extends HiveObject {
+@HiveType(typeId: 2) // Make sure this typeId is unique
+class Ord {
   @HiveField(0)
-  final String idOrd; // Made final since IDs shouldn't change
-
+  final String idOrd;
   @HiveField(1)
-  String frequency;
-
+  final List<String> times;
   @HiveField(2)
-  List<String> times;
-
+  final String notes;
   @HiveField(3)
-  String notes;
-
+  final List<dynamic> history;
   @HiveField(4)
-  List<Map<String, dynamic>> history;
+  final DateTime startDate; // New field
+  @HiveField(5)
+  final DateTime endDate; // New field
 
   Ord({
     required this.idOrd,
-    this.frequency = 'daily', // Default value
-    List<String>? times, // Made optional with default
-    this.notes = '', // Default value
-    List<Map<String, dynamic>>? history, // Optional with default
-  }) : times = times ?? [],
-       history = history ?? [];
-
-  // Add a factory constructor for convenience
-  factory Ord.create({
-    required String idOrd,
-    String frequency = 'daily',
-    List<String> times = const [],
-    String notes = '',
-    List<Map<String, dynamic>> history = const [],
-  }) {
-    return Ord(
-      idOrd: idOrd,
-      frequency: frequency,
-      times: times,
-      notes: notes,
-      history: history,
-    );
-  }
-
-  // Helper method to add a time
-  void addTime(String time) {
-    times.add(time);
-  }
-
-  // Helper method to add history entry
-  void addHistoryEntry(Map<String, dynamic> entry) {
-    history.add(entry);
-  }
+    required this.times,
+    required this.notes,
+    required this.history,
+    required this.startDate,
+    required this.endDate,
+  });
 }

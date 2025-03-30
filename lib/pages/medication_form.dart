@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
+import 'package:test/components/cards/notes_card.dart';
 import 'package:test/pages/visualization.dart';
 import 'package:uuid/uuid.dart';
 import '../data/models/medication.dart';
@@ -39,6 +40,15 @@ abstract class MedicationFormPageState<T extends MedicationFormPage>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _repository = Provider.of<MedicationRepository>(context, listen: false);
+  }
+
+  final TextEditingController _notesController = TextEditingController();
+
+  @override
+  void dispose() {
+    _notesController.dispose();
+    _medicineNameController.dispose();
+    super.dispose();
   }
 
   Color get selectedColor => _selectedColor;
@@ -111,15 +121,22 @@ abstract class MedicationFormPageState<T extends MedicationFormPage>
   }
 
   Future<void> _saveMedication() async {
+    if (_startDate == null || _endDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("الرجاء تحديد تاريخ البداية والنهاية")),
+      );
+      return;
+    }
     final times =
         _doseTimes.map((time) => "${time.hour}:${time.minute}").toList();
 
     final newOrd = Ord(
       idOrd: _uuid.v4(),
-      frequency: 'daily',
       times: times,
-      notes: '',
+      notes: _notesController.text,
       history: [],
+      startDate: _startDate!, // Add start date
+      endDate: _endDate!, // Add end date
     );
 
     try {
@@ -259,6 +276,11 @@ abstract class MedicationFormPageState<T extends MedicationFormPage>
               onSelectStartDate: _selectStartDate,
               onSelectEndDate: _selectEndDate,
               onSetPeriod: _setPeriod,
+            ),
+            const SizedBox(height: 20),
+            NotesCard(
+              controller: _notesController,
+              onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 20),
             Padding(
