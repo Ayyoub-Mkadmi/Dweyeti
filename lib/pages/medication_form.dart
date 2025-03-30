@@ -1,4 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:provider/provider.dart';
+import 'package:test/pages/visualization.dart';
+import 'package:uuid/uuid.dart';
+import '../data/models/medication.dart';
+import '../data/models/ord.dart';
+import '../data/repositories/medication_repository.dart';
 import '../components/header.dart';
 import '../components/cards/medicine_card.dart';
 import '../components/cards/dose_times_card.dart';
@@ -8,10 +15,12 @@ import '../components/buttons/action_button.dart';
 abstract class MedicationFormPage extends StatefulWidget {
   final String medicineType;
   Widget customHeader;
+  // final MedicationRepository repository;
 
   MedicationFormPage({
     required this.medicineType,
     required this.customHeader,
+    // required this.repository,
     Key? key,
   }) : super(key: key);
 }
@@ -24,6 +33,13 @@ abstract class MedicationFormPageState<T extends MedicationFormPage>
   DateTime? _startDate;
   DateTime? _endDate;
   Duration? _duration;
+  late final MedicationRepository _repository;
+  final Uuid _uuid = Uuid();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _repository = Provider.of<MedicationRepository>(context, listen: false);
+  }
 
   Color get selectedColor => _selectedColor;
 
@@ -94,6 +110,57 @@ abstract class MedicationFormPageState<T extends MedicationFormPage>
     });
   }
 
+  Future<void> _saveMedication() async {
+    final times =
+        _doseTimes.map((time) => "${time.hour}:${time.minute}").toList();
+
+    final newOrd = Ord(
+      idOrd: _uuid.v4(),
+      frequency: 'daily',
+      times: times,
+      notes: '',
+      history: [],
+    );
+
+    try {
+      // First try to find existing medication
+      final existingMeds = _repository.getAllMedications();
+      final existingMed = existingMeds.firstWhere(
+        (m) => m.name == _medicineNameController.text,
+        orElse:
+            () =>
+                Medication(id: '', name: '', ords: [], type: '', colorValue: 0),
+      );
+
+      if (existingMed.id.isNotEmpty) {
+        // Add new ORD to existing medication
+        await _repository.addOrdToMedication(existingMed.id, newOrd);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("تم إضافة جرعة جديدة للدواء الموجود")),
+        );
+      } else {
+        // Create new medication
+        final newMedication = Medication(
+          id: _uuid.v4(),
+          name: _medicineNameController.text,
+          ords: [newOrd],
+          type: widget.medicineType,
+          colorValue: _selectedColor.value,
+        );
+        await _repository.addMedication(newMedication);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("تم حفظ الدواء بنجاح")));
+      }
+
+      Navigator.of(context).pop();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("حدث خطأ أثناء الحفظ: ${e.toString()}")),
+      );
+    }
+  }
+
   void _showConfirmationDialog() {
     if (!_isFormComplete) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -149,12 +216,7 @@ abstract class MedicationFormPageState<T extends MedicationFormPage>
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("تم حفظ المعلومات بنجاح")),
-                );
-              },
+              onPressed: _saveMedication,
               child: const Text("تأكيد", style: TextStyle(color: Colors.green)),
             ),
             TextButton(
@@ -213,6 +275,18 @@ abstract class MedicationFormPageState<T extends MedicationFormPage>
                     label: "بطلت",
                     color: Colors.red,
                     onPressed: () {},
+                  ),
+                  ActionButton(
+                    label: "عرض البيانات",
+                    color: Colors.blue,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HiveViewerPage(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
