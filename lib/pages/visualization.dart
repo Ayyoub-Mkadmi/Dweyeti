@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../data/models/medication.dart';
 import '../data/models/ord.dart';
-import '../data/models/history.dart'; // Make sure you import the History model
 
 class HiveViewerPage extends StatelessWidget {
   const HiveViewerPage({super.key});
@@ -10,7 +9,6 @@ class HiveViewerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final medicationsBox = Hive.box<Medication>('medications');
-    final historyBox = Hive.box<History>('history'); // Open the history box
 
     return Scaffold(
       appBar: AppBar(
@@ -55,9 +53,7 @@ class HiveViewerPage extends StatelessWidget {
                     'Treatment Periods:',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  ...medication.ords
-                      .map((ord) => _buildOrdCard(ord, historyBox))
-                      .toList(),
+                  ...medication.ords.map((ord) => _buildOrdCard(ord)).toList(),
                 ],
               ),
             ),
@@ -66,8 +62,7 @@ class HiveViewerPage extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          await medicationsBox.clear();
-          await historyBox.clear(); // Clear the history box as well
+          await Hive.box('medications').clear();
           (context as Element).markNeedsBuild();
           ScaffoldMessenger.of(
             context,
@@ -99,7 +94,7 @@ class HiveViewerPage extends StatelessWidget {
     );
   }
 
-  Widget _buildOrdCard(Ord ord, Box<History> historyBox) {
+  Widget _buildOrdCard(Ord ord) {
     final duration = ord.endDate.difference(ord.startDate).inDays;
 
     return Card(
@@ -121,50 +116,19 @@ class HiveViewerPage extends StatelessWidget {
               'History:',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            // FutureBuilder to load history data for this ord
-            FutureBuilder<List<History>>(
-              future: _getHistoryForOrd(ord.idOrd, historyBox),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator();
-                } else if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Text('No history available');
-                } else {
-                  return Column(
-                    children:
-                        snapshot.data!
-                            .map(
-                              (history) => Text(
-                                '- ${history.status} at ${_formatDate(history.date)}',
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                            )
-                            .toList(),
-                  );
-                }
-              },
-            ),
+            if (ord.history.isEmpty)
+              const Text('No history available')
+            else
+              ...ord.history.map(
+                (entry) => Text(
+                  '- ${entry.toString()}',
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ),
           ],
         ),
       ),
     );
-  }
-
-  // Fetch history for the given ordId
-  Future<List<History>> _getHistoryForOrd(
-    String ordId,
-    Box<History> historyBox,
-  ) async {
-    final List<History> historyList = [];
-    for (int i = 0; i < historyBox.length; i++) {
-      final history = historyBox.getAt(i);
-      if (history != null && history.ordId == ordId) {
-        historyList.add(history);
-      }
-    }
-    return historyList;
   }
 
   String _formatDate(DateTime date) {
