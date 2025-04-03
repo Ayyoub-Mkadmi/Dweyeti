@@ -170,7 +170,7 @@ abstract class MedicationFormPageState<T extends MedicationFormPage>
         ).showSnackBar(const SnackBar(content: Text("تم حفظ الدواء بنجاح")));
       }
 
-      Navigator.of(context).pop();
+      Navigator.of(context).popUntil((route) => route.isFirst);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("حدث خطأ أثناء الحفظ: ${e.toString()}")),
@@ -190,24 +190,51 @@ abstract class MedicationFormPageState<T extends MedicationFormPage>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("تأكيد المعلومات", textAlign: TextAlign.right),
+          backgroundColor: Colors.white, // Background color to keep it clean
+          titlePadding: EdgeInsets.all(16.0),
+          title: Row(
+            children: [
+              Icon(
+                Icons.medical_services,
+                color: Colors.green,
+                size: 30,
+              ), // Medical icon
+              SizedBox(width: 10),
+              const Text(
+                "تأكيد المعلومات",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+                textAlign: TextAlign.right,
+              ),
+            ],
+          ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           content: SingleChildScrollView(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                // Confirmation image or icon
                 buildConfirmationImage(),
                 const SizedBox(height: 20),
+
+                // Medication Name
                 Text(
-                  "اسم الدواء: ${_medicineNameController.text}",
-                  style: const TextStyle(fontSize: 18),
+                  " ${_medicineNameController.text}",
+                  style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.right,
                 ),
                 const SizedBox(height: 10),
+
+                // Dose times
                 const Text(
                   "مواعيد الجرعات:",
-                  style: TextStyle(fontSize: 18),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.right,
                 ),
+                const SizedBox(height: 10),
                 ..._doseTimes
                     .map(
                       (time) => Text(
@@ -218,29 +245,75 @@ abstract class MedicationFormPageState<T extends MedicationFormPage>
                     )
                     .toList(),
                 const SizedBox(height: 10),
+
+                // Treatment period
                 Text(
                   "فترة العلاج: من ${_startDate!.toLocal().toString().split(' ')[0]} إلى ${_endDate!.toLocal().toString().split(' ')[0]}",
                   style: const TextStyle(fontSize: 18),
                   textAlign: TextAlign.right,
                 ),
+                const SizedBox(height: 10),
+
+                // Duration
                 Text(
                   "المدة: ${_duration!.inDays} يوم",
                   style: const TextStyle(fontSize: 16),
                   textAlign: TextAlign.right,
                 ),
+                const SizedBox(height: 20),
+
+                // Separator line for a clean section
+                Divider(color: Colors.grey.shade300),
+
+                // Action buttons styled like receipt confirmation
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Confirm button
+                      ElevatedButton(
+                        onPressed: _saveMedication,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              Colors.green, // Green confirmation button
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 10,
+                          ),
+                        ),
+                        child: const Text(
+                          "تأكيد",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      // Cancel button
+                      ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red, // Red cancel button
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 10,
+                          ),
+                        ),
+                        child: const Text(
+                          "رجوع",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: _saveMedication,
-              child: const Text("تأكيد", style: TextStyle(color: Colors.green)),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text("رجوع", style: TextStyle(color: Colors.red)),
-            ),
-          ],
         );
       },
     );

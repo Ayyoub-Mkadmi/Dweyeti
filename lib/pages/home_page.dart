@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
-// import 'package:test/components/bottom_nav_bar.dart';
-import 'package:test/components/tile/reminder_tile.dart';
+import 'package:test/data/models/history.dart';
+import 'package:test/data/models/medication.dart';
+import 'package:test/data/repositories/history_repository.dart';
+import 'package:test/data/repositories/medication_repository.dart';
 
-import 'package:test/constants/colors.dart';
+import '../components/tile/reminder_tile.dart';
+import '../constants/colors.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,64 +18,70 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  DateTime _selectedDay = DateTime.now(); // Selected date
+  DateTime _selectedDay = DateTime.now();
+  late final MedicationRepository _medicationRepo;
+  late final HistoryRepository _historyRepo;
+  List<Medication> _medicationsForSelectedDay = [];
+  bool _isInitialized = false;
 
-  final Map<DateTime, List<Map<String, dynamic>>> medicineData = {
-    DateTime(2025, 03, 28): [
-      {
-        'name': 'Navilet',
-        'dose': '1/4',
-        'time': '08:00',
-        'color': Colors.green,
-      },
-      {
-        'name': 'Navilet',
-        'dose': '1/4',
-        'time': '08:00',
-        'color': Colors.green,
-      },
-      {
-        'name': 'Navilet',
-        'dose': '1/4',
-        'time': '08:00',
-        'color': Colors.green,
-      },
-      {
-        'name': 'Navilet',
-        'dose': '1/4',
-        'time': '08:00',
-        'color': Colors.green,
-      },
-      {
-        'name': 'Navilet',
-        'dose': '1/4',
-        'time': '08:00',
-        'color': Colors.green,
-      },
-      {
-        'name': 'Navilet',
-        'dose': '1/4',
-        'time': '08:00',
-        'color': Colors.green,
-      },
-      {'name': 'Navilet', 'dose': '1/4', 'time': '10:00', 'color': Colors.red},
-    ],
-    DateTime(2025, 03, 27): [
-      {
-        'name': 'Paracetamol',
-        'dose': '1',
-        'time': '15:00',
-        'color': Colors.red,
-      },
-    ],
-  };
-
-  // Normalize the date to remove time and match it with the medicine data
-  DateTime _normalizeDate(DateTime date) {
-    return DateTime(date.year, date.month, date.day); // Normalize to midnight
+  @override
+  void initState() {
+    super.initState();
+    _medicationRepo = context.read<MedicationRepository>();
+    _historyRepo = context.read<HistoryRepository>();
+    _initialize();
   }
 
-  void _showMedicinePopup(BuildContext context, Map<String, dynamic> medicine) {
+  Future<void> _initialize() async {
+    try {
+      await _medicationRepo.init();
+      await _historyRepo.init();
+      _fetchMedicationsForSelectedDay();
+      setState(() => _isInitialized = true);
+    } catch (e) {
+      debugPrint("Initialization error: $e");
+      // Consider showing an error to the user
+    }
+  }
+
+  DateTime _normalizeDate(DateTime date) {
+    return DateTime(date.year, date.month, date.day);
+  }
+
+  void _fetchMedicationsForSelectedDay() {
+    try {
+      final allMeds = _medicationRepo.getAllMedications();
+      final medsForDay = <Medication>[];
+
+      for (final med in allMeds) {
+        for (final ord in med.ords) {
+          final startDate = _normalizeDate(ord.startDate);
+          final endDate = _normalizeDate(ord.endDate);
+          final selectedDay = _normalizeDate(_selectedDay);
+
+          if (selectedDay.isAfter(
+                startDate.subtract(const Duration(days: 1)),
+              ) &&
+              selectedDay.isBefore(endDate.add(const Duration(days: 1)))) {
+            medsForDay.add(med);
+            break; // Add medication only once even if multiple ords match
+          }
+        }
+      }
+
+      setState(() {
+        _medicationsForSelectedDay = medsForDay;
+      });
+    } catch (e) {
+      debugPrint("Error fetching medications: $e");
+    }
+  }
+
+  void _showMedicinePopup(
+    BuildContext context,
+    Medication medicine,
+    String time,
+  ) {
     showDialog(
       context: context,
       builder: (context) {
@@ -79,8 +90,7 @@ class _HomePageState extends State<HomePage> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-
-          contentPadding: EdgeInsets.only(bottom: 20),
+          contentPadding: const EdgeInsets.only(bottom: 20),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -88,7 +98,7 @@ class _HomePageState extends State<HomePage> {
                 width: 280,
                 decoration: BoxDecoration(
                   color: mainColor,
-                  borderRadius: BorderRadius.only(
+                  borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
                   ),
@@ -97,34 +107,33 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     const SizedBox(height: 20),
                     Text(
-                      medicine['name'],
-                      style: TextStyle(
+                      medicine.name,
+                      style: const TextStyle(
                         fontSize: 25,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
+                    const SizedBox(height: 10),
                     Text(
-                      "Dose: ${medicine['dose']}",
-                      style: TextStyle(color: Colors.white),
+                      time,
+                      style: const TextStyle(fontSize: 18, color: Colors.white),
                     ),
                     const SizedBox(height: 20),
                   ],
                 ),
               ),
-
               const SizedBox(height: 10),
-
-              const SizedBox(height: 5),
-
-              const SizedBox(height: 20),
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
                 alignment: WrapAlignment.center,
                 children: [
                   ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      _updateMedicineStatus(medicine, time, Colors.green.value);
+                      Navigator.pop(context);
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                     ),
@@ -134,7 +143,10 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      _updateMedicineStatus(medicine, time, Colors.grey.value);
+                      Navigator.pop(context);
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey,
                     ),
@@ -145,9 +157,12 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               ElevatedButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () {
+                  _updateMedicineStatus(medicine, time, Colors.red.value);
+                  Navigator.pop(context);
+                },
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 child: const Text(
                   "بطلت",
@@ -161,46 +176,110 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> _updateMedicineStatus(
+    Medication medicine,
+    String time,
+    int newColorValue,
+  ) async {
+    try {
+      final freshMed = await _medicationRepo.getMedication(medicine.id);
+      if (freshMed == null) {
+        debugPrint("Medication not found in box");
+        return;
+      }
+
+      bool needsUpdate = false;
+      final normalizedDay = _normalizeDate(_selectedDay);
+
+      for (final ord in freshMed.ords) {
+        if (_selectedDay.isAfter(
+              ord.startDate.subtract(const Duration(days: 1)),
+            ) &&
+            _selectedDay.isBefore(ord.endDate.add(const Duration(days: 1)))) {
+          // Initialize if null
+          ord.dailyStatus ??= {};
+          ord.dailyStatus![normalizedDay] ??= {};
+          ord.history ??= [];
+
+          // Update status
+          ord.dailyStatus![normalizedDay]![time] = newColorValue;
+
+          final status =
+              newColorValue == Colors.green.value
+                  ? "Taken"
+                  : (newColorValue == Colors.grey.value
+                      ? "Skipped"
+                      : "Stopped");
+
+          // Add history
+          ord.history!.add({
+            "date": _selectedDay.toIso8601String(),
+            "time": time,
+            "status": status,
+          });
+
+          // Save changes
+          await ord.save();
+          needsUpdate = true;
+
+          // Add to history repository
+          await _historyRepo.addHistory(
+            History(
+              medicationId: medicine.id,
+              ordId: ord.idOrd,
+              date: _selectedDay,
+              time: time,
+              status: status,
+            ),
+          );
+        }
+      }
+
+      if (needsUpdate) {
+        await _medicationRepo.addMedication(freshMed);
+        _fetchMedicationsForSelectedDay();
+      }
+    } catch (e) {
+      debugPrint("Error updating status: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    print(_selectedDay);
+    if (!_isInitialized) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
-      backgroundColor: Color(0xFFF5FAFC),
+      backgroundColor: const Color(0xFFF5FAFC),
       body: Column(
         children: [
           const SizedBox(height: 40),
-
           const Text(
             '! مرحبا بيك ',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
-
           const SizedBox(height: 10),
-
-          // Button to go back to today's date
           TextButton(
             onPressed: () {
               setState(() {
-                _selectedDay = DateTime.now(); // Set to today
+                _selectedDay = DateTime.now();
+                _fetchMedicationsForSelectedDay();
               });
             },
             child: const Text('💙', style: TextStyle(fontSize: 20)),
           ),
-
           const SizedBox(height: 10),
-
-          // Dynamic Calendar
           TableCalendar(
             focusedDay: _selectedDay,
             firstDay: DateTime.utc(2023, 1, 1),
             lastDay: DateTime.utc(2030, 12, 31),
-            calendarFormat: CalendarFormat.week, // Shows only one week
-            selectedDayPredicate: (day) {
-              return isSameDay(_selectedDay, day);
-            },
+            calendarFormat: CalendarFormat.week,
+            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
             onDaySelected: (selectedDay, focusedDay) {
               setState(() {
                 _selectedDay = selectedDay;
+                _fetchMedicationsForSelectedDay();
               });
             },
             headerStyle: const HeaderStyle(
@@ -208,7 +287,7 @@ class _HomePageState extends State<HomePage> {
               titleCentered: true,
             ),
             calendarStyle: CalendarStyle(
-              selectedDecoration: BoxDecoration(
+              selectedDecoration: const BoxDecoration(
                 color: Color(0xFF4CC9F0),
                 shape: BoxShape.circle,
               ),
@@ -218,37 +297,86 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-
           const SizedBox(height: 10),
-
-          // Medicine List
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(45),
-              itemCount:
-                  medicineData[_normalizeDate(_selectedDay)]?.length ?? 0,
-              itemBuilder: (context, index) {
-                var med = medicineData[_normalizeDate(_selectedDay)]![index];
-                return GestureDetector(
-                  onTap: () => _showMedicinePopup(context, med),
-                  child: Column(
-                    children: [
-                      ReminderTile(
-                        name: med['name'],
-                        dose: med['dose'],
-                        time: med['time'],
-                        color: med['color'],
-                      ),
-                      SizedBox(height: 20),
-                    ],
-                  ),
-                );
-              },
-            ),
+            child:
+                _medicationsForSelectedDay.isEmpty
+                    ? const Center(
+                      child: Text("No medications for selected day"),
+                    )
+                    : ListView.builder(
+                      padding: const EdgeInsets.all(45),
+                      itemCount: _medicationsForSelectedDay.length,
+                      itemBuilder: (context, medIndex) {
+                        try {
+                          final med = _medicationsForSelectedDay[medIndex];
+                          return Column(
+                            children:
+                                med.ords.expand((ord) {
+                                  return ord.times.map((time) {
+                                    final historyEntry = _historyRepo
+                                        .getHistoryForOrdAndDate(
+                                          ord.idOrd,
+                                          _selectedDay,
+                                        );
+
+                                    Color tileColor;
+                                    if (historyEntry != null) {
+                                      tileColor =
+                                          historyEntry.status == "Taken"
+                                              ? Colors.green
+                                              : historyEntry.status == "Skipped"
+                                              ? Colors.grey
+                                              : historyEntry.status == "Stopped"
+                                              ? Colors.red
+                                              : const Color.fromARGB(
+                                                255,
+                                                104,
+                                                194,
+                                                246,
+                                              );
+                                    } else {
+                                      tileColor = const Color.fromARGB(
+                                        255,
+                                        104,
+                                        194,
+                                        246,
+                                      );
+                                    }
+
+                                    return GestureDetector(
+                                      onTap:
+                                          () => _showMedicinePopup(
+                                            context,
+                                            med,
+                                            time,
+                                          ),
+                                      child: Column(
+                                        children: [
+                                          ReminderTile(
+                                            name: med.name,
+                                            dose: '1 dose',
+                                            time: time,
+                                            color: tileColor,
+                                          ),
+                                          const SizedBox(height: 10),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList();
+                                }).toList(),
+                          );
+                        } catch (e) {
+                          return ListTile(
+                            title: const Text("Error loading medication"),
+                            subtitle: Text(e.toString()),
+                          );
+                        }
+                      },
+                    ),
           ),
         ],
       ),
-      //bottomNavigationBar: BottomNavBar(),
     );
   }
 }

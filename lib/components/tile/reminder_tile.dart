@@ -30,6 +30,7 @@ class ReminderTile extends StatelessWidget {
             bottom: 0,
             child: Container(
               width: 293,
+
               height: 30,
               decoration: BoxDecoration(
                 color: color,
