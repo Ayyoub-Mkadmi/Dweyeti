@@ -41,7 +41,7 @@ class ColorPicker extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                _buildColorOption(Colors.yellow),
+                _buildColorOption(const Color.fromARGB(255, 237, 101, 33)),
                 SizedBox(width: 16),
                 _buildColorOption(Colors.purple),
                 SizedBox(width: 16),

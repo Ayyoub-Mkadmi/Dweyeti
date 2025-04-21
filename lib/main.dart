@@ -1,10 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:test/pages/pill_page.dart';
-import 'package:test/pages/sachet_page.dart';
-import 'pages/syringe_page.dart';
+import 'package:provider/provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:test/components/bottom_nav_bar.dart';
+import 'package:test/data/models/medication.dart';
+import 'package:test/data/models/ord.dart';
+import 'package:test/data/repositories/medication_repository.dart';
 
-void main() {
-  runApp(MyApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Hive
+  await Hive.initFlutter();
+
+  // Register adapters
+  Hive.registerAdapter(MedicationAdapter());
+  Hive.registerAdapter(OrdAdapter());
+
+  runApp(
+    FutureProvider<MedicationRepository>(
+      create: (context) async {
+        final repo = MedicationRepository();
+        await repo.init(); // Ensure initialization completes before usage
+        return repo;
+      },
+      initialData:
+          MedicationRepository(), // Provide a default instance as fallback
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -16,9 +39,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      // home: PillPage(),
-      // home: SachetPage(),
-      home: SyringePage(),
+      home: BottomNavBar(),
     );
   }
 }

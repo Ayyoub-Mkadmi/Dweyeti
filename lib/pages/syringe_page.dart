@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:test/pages/medication_form.dart';
 import '../components/header.dart';
+import '../data/repositories/medication_repository.dart';
 
 class SyringePage extends MedicationFormPage {
   SyringePage({Key? key})
@@ -12,7 +13,7 @@ class SyringePage extends MedicationFormPage {
           selectedColor: Colors.red,
           onColorSelected: (color) {},
           syringeSvgPath: 'assets/icons/syringe.svg',
-          syringeSupSvgPath: 'assets/icons/syringe1sup.svg',
+          syringeSupSvgPath: 'assets/icons/syringe_sup.svg',
         ),
       );
 
@@ -41,7 +42,7 @@ class _SyringePageState extends MedicationFormPageState<SyringePage> {
       selectedColor: selectedColor,
       onColorSelected: onColorSelected,
       syringeSvgPath: 'assets/icons/syringe.svg',
-      syringeSupSvgPath: 'assets/icons/syringe1sup.svg',
+      syringeSupSvgPath: 'assets/icons/syringe_sup.svg',
     );
     return super.build(context);
   }
@@ -55,6 +56,8 @@ class _SyringePageState extends MedicationFormPageState<SyringePage> {
           alignment: Alignment.center,
           children: [
             // Your syringe SVG implementation here
+            // Example:
+            // SvgPicture.asset('assets/icons/syringe.svg'),
           ],
         ),
       ),
