@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:hive/hive.dart';
 
 part 'ord.g.dart';
@@ -38,10 +40,23 @@ class Ord extends HiveObject {
 
   /// Update status for a specific time slot on a given day
   void updateStatus(DateTime day, String time, int status) {
-    DateTime normalizedDay = DateTime(day.year, day.month, day.day);
-    dailyStatus[normalizedDay] ??= {};
+    final normalizedDay = DateTime(day.year, day.month, day.day);
+
+    // Ensure the outer map is mutable
+    if (dailyStatus is UnmodifiableMapView) {
+      dailyStatus = Map.from(dailyStatus);
+    }
+
+    // Ensure the inner map exists and is mutable
+    if (dailyStatus[normalizedDay] == null ||
+        dailyStatus[normalizedDay] is! Map) {
+      dailyStatus[normalizedDay] = {};
+    } else if (dailyStatus[normalizedDay] is UnmodifiableMapView) {
+      dailyStatus[normalizedDay] = Map.from(dailyStatus[normalizedDay]!);
+    }
+
+    // Now safely modify
     dailyStatus[normalizedDay]![time] = status;
-    save();
   }
 
   /// Get status for a specific time slot on a given day

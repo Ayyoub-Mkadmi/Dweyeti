@@ -3,6 +3,7 @@ import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:test/data/models/medication.dart';
+import 'package:test/data/models/ord.dart';
 import 'package:test/data/repositories/medication_repository.dart';
 
 import '../components/tile/reminder_tile.dart';
@@ -18,7 +19,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   DateTime _selectedDay = DateTime.now();
   MedicationRepository _medicationRepo = MedicationRepository();
-  List<Medication> _medicationsForSelectedDay = [];
+  List<Map<String, dynamic>> _ordsForSelectedDay = [];
 
   @override
   void initState() {
@@ -29,16 +30,16 @@ class _HomePageState extends State<HomePage> {
   Future<void> _initialize() async {
     _medicationRepo = Provider.of<MedicationRepository>(context, listen: false);
     await _medicationRepo.init();
-    _fetchMedicationsForSelectedDay();
+    _fetchOrdsForSelectedDay();
   }
 
   DateTime _normalizeDate(DateTime date) {
     return DateTime(date.year, date.month, date.day);
   }
 
-  void _fetchMedicationsForSelectedDay() {
+  void _fetchOrdsForSelectedDay() {
     List<Medication> allMeds = _medicationRepo.getAllMedications();
-    List<Medication> medsForDay = [];
+    List<Map<String, dynamic>> ordsList = [];
 
     for (var med in allMeds) {
       for (var ord in med.ords) {
@@ -50,19 +51,22 @@ class _HomePageState extends State<HomePage> {
             _normalizeDate(
               _selectedDay,
             ).isBefore(endDate.add(const Duration(days: 1)))) {
-          medsForDay.add(med);
+          for (var time in ord.times) {
+            ordsList.add({'medication': med, 'ord': ord, 'time': time});
+          }
         }
       }
     }
 
     setState(() {
-      _medicationsForSelectedDay = medsForDay;
+      _ordsForSelectedDay = ordsList;
     });
   }
 
-  void _showMedicinePopup(
+  void _showOrdPopup(
     BuildContext context,
-    Medication medicine,
+    Medication med,
+    Ord ord,
     String time,
   ) {
     showDialog(
@@ -90,8 +94,8 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     const SizedBox(height: 20),
                     Text(
-                      medicine.name,
-                      style: TextStyle(
+                      med.name,
+                      style: const TextStyle(
                         fontSize: 25,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -99,8 +103,8 @@ class _HomePageState extends State<HomePage> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      time, // Show selected time
-                      style: TextStyle(fontSize: 18, color: Colors.white),
+                      time,
+                      style: const TextStyle(fontSize: 18, color: Colors.white),
                     ),
                     const SizedBox(height: 20),
                   ],
@@ -114,7 +118,7 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      _updateMedicineStatus(medicine, time, Colors.green.value);
+                      _updateOrdStatus(ord, time, Colors.green.value);
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(
@@ -127,7 +131,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      _updateMedicineStatus(medicine, time, Colors.grey.value);
+                      _updateOrdStatus(ord, time, Colors.grey.value);
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(
@@ -140,10 +144,10 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               ElevatedButton(
                 onPressed: () {
-                  _updateMedicineStatus(medicine, time, Colors.red.value);
+                  _updateOrdStatus(ord, time, Colors.red.value);
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -159,61 +163,48 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _updateMedicineStatus(
-    Medication medicine,
-    String time,
-    int newColorValue,
-  ) async {
-    var box = await Hive.openBox<Medication>('medications');
+  void _updateOrdStatus(Ord ord, String time, int newColorValue) async {
+    print("Updating status for Ord on $_selectedDay at $time");
 
-    for (var ord in medicine.ords) {
-      if (_selectedDay.isAfter(
-            ord.startDate.subtract(const Duration(days: 1)),
-          ) &&
-          _selectedDay.isBefore(ord.endDate.add(const Duration(days: 1)))) {
-        // Ensure dailyStatus map exists for the selected day
-        DateTime normalizedDay = _normalizeDate(_selectedDay);
+    final selectedMed = _medicationRepo.getAllMedications().firstWhere(
+      (med) => med.ords.contains(ord),
+      orElse:
+          () => throw Exception("Medication not found for the selected Ord."),
+    );
 
-        // Make sure the dailyStatus is mutable
-        if (ord.dailyStatus[normalizedDay] == null ||
-            ord.dailyStatus[normalizedDay] is Map == false) {
-          ord.dailyStatus[normalizedDay] =
-              {}; // Create a new mutable map if not already a map
-        }
+    // Find the actual Ord object inside the medication and update it
+    final index = selectedMed.ords.indexOf(ord);
+    if (index == -1) return;
 
-        // Update the status for the specific time slot
-        ord.dailyStatus[normalizedDay]![time] = newColorValue;
+    final realOrd = selectedMed.ords[index];
 
-        // Track status history
-        String status =
-            (newColorValue == Colors.green.value)
-                ? "Taken"
-                : (newColorValue == Colors.grey.value)
-                ? "Skipped"
-                : "Stopped";
+    realOrd.updateStatus(_selectedDay, time, newColorValue);
+    await selectedMed.save();
 
-        ord.history.add({
-          "date": _selectedDay.toIso8601String(),
-          "time": time,
-          "status": status,
-        });
+    realOrd.history.add({
+      "date": _selectedDay.toIso8601String(),
+      "time": time,
+      "status":
+          (newColorValue == Colors.green.value)
+              ? "Taken"
+              : (newColorValue == Colors.grey.value)
+              ? "Skipped"
+              : "Stopped",
+    });
 
-        await ord.save();
-      }
+    // Save the parent Medication instead of the Ord
+    if (selectedMed.isInBox) {
+      await selectedMed.save();
+      print("Medication with updated Ord saved.");
     }
 
-    // Save the updated medication
-    await medicine.save();
-    // Re-fetch medications for the selected day
-    _fetchMedicationsForSelectedDay();
-    // Refresh the UI
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF5FAFC),
+      backgroundColor: const Color(0xFFF5FAFC),
       body: Column(
         children: [
           const SizedBox(height: 40),
@@ -226,7 +217,7 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               setState(() {
                 _selectedDay = DateTime.now();
-                _fetchMedicationsForSelectedDay();
+                _fetchOrdsForSelectedDay();
               });
             },
             child: const Text('💙', style: TextStyle(fontSize: 20)),
@@ -241,7 +232,7 @@ class _HomePageState extends State<HomePage> {
             onDaySelected: (selectedDay, focusedDay) {
               setState(() {
                 _selectedDay = selectedDay;
-                _fetchMedicationsForSelectedDay();
+                _fetchOrdsForSelectedDay();
               });
             },
             headerStyle: const HeaderStyle(
@@ -250,7 +241,7 @@ class _HomePageState extends State<HomePage> {
             ),
             calendarStyle: CalendarStyle(
               selectedDecoration: BoxDecoration(
-                color: Color(0xFF4CC9F0),
+                color: const Color(0xFF4CC9F0),
                 shape: BoxShape.circle,
               ),
               todayDecoration: BoxDecoration(
@@ -263,35 +254,29 @@ class _HomePageState extends State<HomePage> {
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(45),
-              itemCount: _medicationsForSelectedDay.length,
-              itemBuilder: (context, medIndex) {
-                Medication med = _medicationsForSelectedDay[medIndex];
+              itemCount: _ordsForSelectedDay.length,
+              itemBuilder: (context, index) {
+                final entry = _ordsForSelectedDay[index];
+                final Medication med = entry['medication'];
+                final Ord ord = entry['ord'];
+                final String time = entry['time'];
 
-                return Column(
-                  children:
-                      med.ords.expand((ord) {
-                        return ord.times.map((time) {
-                          // Retrieve the status from the dailyStatus map
-                          int tileColor =
-                              ord.getStatus(_selectedDay, time) ??
-                              Colors.blue.value; // Default color
+                int tileColor =
+                    ord.getStatus(_selectedDay, time) ?? Colors.blue.value;
 
-                          return GestureDetector(
-                            onTap: () => _showMedicinePopup(context, med, time),
-                            child: Column(
-                              children: [
-                                ReminderTile(
-                                  name: med.name,
-                                  dose: '1 dose',
-                                  time: time,
-                                  color: Color(tileColor),
-                                ),
-                                SizedBox(height: 10),
-                              ],
-                            ),
-                          );
-                        }).toList();
-                      }).toList(),
+                return GestureDetector(
+                  onTap: () => _showOrdPopup(context, med, ord, time),
+                  child: Column(
+                    children: [
+                      ReminderTile(
+                        name: med.name,
+                        dose: '1 dose',
+                        time: time,
+                        color: Color(tileColor),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
                 );
               },
             ),
